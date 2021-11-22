@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: user-dubbo-service
+  profiles:
+    active: @deploy@
+  main:
+    # Spring Boot 2.1 需要设定
+    allow-bean-definition-overriding: true
+  cloud:
+    nacos:
+      config:
+        server-addr: @env.dubbo.registry.address@
+        namespace: @env.nacos.namespace@
+      # Nacos 服务发现与注册配置
+      discovery:
+        server-addr: @env.dubbo.registry.address@
+        namespace: @env.nacos.namespace@
+
+dubbo:
+  scan:
+    base-packages: com.zxs.user.facade
+  protocol:
+    # dubbo 协议
+    name: dubbo
+    # dubbo 协议端口（ -1 表示自增端口，从 20880 开始）
+    port: 20880
+  registry:
+    # 挂载到 Spring Cloud 注册中心
+    address: @env.spring.cloud.registry.address@
+    group: @env.dubbo.group@
+  cloud:
+    subscribed-services:
+  provider:
+    group: @env.dubbo.group@
+    version: @env.dubbo.version@
+    timeout: 60000
+    dynamic: true
+  consumer:
+    group: @env.dubbo.group@
+    version: @env.dubbo.version@
+    check: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

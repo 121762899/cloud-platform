@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} - %M [%4line] -- %X{dubbo_trace_id} | %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    <include resource="com/xesapp/logging/logback/xes-appender-disruptor.xml"/>
+
+    <property name="LOG_HOME" value="./home/logs/log/"/>
+    <property name="MSG_PATTERN" value="%d{ISO8601} -- [%tid] | %msg%n"/>
+    <property name="NORMAL_PATTERN"
+              value="%d{ISO8601} [%-16.16thread] %-5level -- %-50.50logger - %M [%4line] -- %X{dubbo_trace_id} | %msg%n"/>
+    <property name="SERIOUS_PATTERN"
+              value="%d{ISO8601} [%-16.16thread] %-5level -- %-60.60class - %M [%4line] -- %X{dubbo_trace_id} | %msg%n"/>
+
+    <property name="LOG_PATTERN" value="%msg%n"/>
+    <timestamp key="byDay" datePattern="yyyyMMdd"/>
+    <timestamp key="bySecond" datePattern="yyyyMMdd'T'HHmmss"/>
+
+    <appender name="INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/history/info.%d{yyyyMMdd}-%i.log</fileNamePattern>
+            <MaxHistory>30</MaxHistory>
+            <maxFileSize>1GB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${NORMAL_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- special level -->
+    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <file>${LOG_HOME}/error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/history/error.%d{yyyyMMdd}-%i.log</fileNamePattern>
+            <MaxHistory>30</MaxHistory>
+            <maxFileSize>1GB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${SERIOUS_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 记录详细日志(api数据分析) begin -->
+    <appender name="api_log" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/api.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/history/api.%d{yyyyMMdd}-%i.log</fileNamePattern>
+            <MaxHistory>30</MaxHistory>
+            <maxFileSize>1GB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>true</neverBlock>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>1024</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref="api_log"/>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${NORMAL_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="api" level="INFO" additivity="false">
+        <appender-ref ref="api_log"/>
+    </logger>
+
+    <!--测试线上日志输出-->
+    <springProfile name="dev,gray,test,prod">
+        <root level="INFO">
+            <appender-ref ref="INFO"/>
+            <appender-ref ref="ERROR"/>
+        </root>
+    </springProfile>
+
+    <!--本地日志输出-->
+    <springProfile name="local">
+        <root level="INFO">
+            <appender-ref ref="INFO"/>
+            <appender-ref ref="ERROR"/>
+        </root>
+    </springProfile>
+</configuration>

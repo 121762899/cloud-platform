@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.3.2.RELEASE</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.zxs</groupId>
+    <artifactId>cloud-platform</artifactId>
+    <version>${revision}</version>
+    <modules>
+        <module>platform-user</module>
+        <module>platform-dependencies</module>
+        <module>cloud-gateway</module>
+    </modules>
+
+    <packaging>pom</packaging>
+    <name>Cloud :: Platform</name>
+    <description>Cloud :: Platform</description>
+
+
+    <properties>
+        <spring-boot.version>2.3.2.RELEASE</spring-boot.version>
+        <revision>1.0.0-SNAPSHOT</revision>
+        <log.base-path>${user.home}/logs</log.base-path>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.1.0</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 默认跳过测试 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.20.1</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <!-- 配置开发和测试环境 -->
+    <profiles>
+
+        <profile>
+            <id>local</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <deploy>local</deploy>
+                <env.dubbo.version>0.1</env.dubbo.version>
+                <env.dubbo.registry.address>127.0.0.1:8848</env.dubbo.registry.address>
+                <env.nacos.namespace>public</env.nacos.namespace>
+                <env.spring.cloud.registry.address>nacos://${env.dubbo.registry.address}?namespace=${env.nacos.namespace}</env.spring.cloud.registry.address>
+                <env.dubbo.group>local</env.dubbo.group>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>dev</id>
+            <properties>
+                <deploy>dev</deploy>
+                <env.dubbo.version>0.1</env.dubbo.version>
+                <env.dubbo.registry.address>172.21.6.70:8848</env.dubbo.registry.address>
+                <env.spring.cloud.registry.address>zookeeper://10.35.36.123:2181</env.spring.cloud.registry.address>
+                <env.nacos.namespace>public</env.nacos.namespace>
+                <env.dubbo.group>dev</env.dubbo.group>
+            </properties>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <deploy>test</deploy>
+                <env.dubbo.version>0.2</env.dubbo.version>
+                <env.dubbo.registry.address>nacos-neirongzhognxin.xesv5.com:80</env.dubbo.registry.address>
+                <env.spring.cloud.registry.address>nacos://${env.dubbo.registry.address}?namespace=${env.nacos.namespace}</env.spring.cloud.registry.address>
+                <env.nacos.namespace>public</env.nacos.namespace>
+                <env.dubbo.group>test</env.dubbo.group>
+            </properties>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <deploy>prod</deploy>
+                <env.dubbo.version>1.0</env.dubbo.version>
+                <env.dubbo.registry.address>172.17.141.64:8848</env.dubbo.registry.address>
+                <env.spring.cloud.registry.address>nacos://${env.dubbo.registry.address}?namespace=${env.nacos.namespace}</env.spring.cloud.registry.address>
+                <env.nacos.namespace>538f7b37-99b7-4f29-ade9-b771f1324275</env.nacos.namespace>
+                <env.dubbo.group>prod</env.dubbo.group>
+            </properties>
+        </profile>
+        <profile>
+            <id>gray</id>
+            <properties>
+                <deploy>gray</deploy>
+                <env.dubbo.version>1.0</env.dubbo.version>
+                <env.dubbo.registry.address>172.17.141.64:8848</env.dubbo.registry.address>
+                <env.spring.cloud.registry.address>nacos://${env.dubbo.registry.address}?namespace=${env.nacos.namespace}</env.spring.cloud.registry.address>
+                <env.nacos.namespace>b1926692-e30b-4562-9924-c2dea6b060f3</env.nacos.namespace>
+                <env.dubbo.group>gray</env.dubbo.group>
+            </properties>
+        </profile>
+    </profiles>
+    <!-- 设置仓库 -->
+    <repositories>
+        <repository>
+            <id>alimaven</id>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <releases>
+                <updatePolicy>always</updatePolicy>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>aliyun-repos</id>
+            <name>Aliyun Repository</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+</project>
